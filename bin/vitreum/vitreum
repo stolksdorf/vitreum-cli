@@ -3,11 +3,8 @@
 const path = require('path');
 const fs   = require('fs');
 const mkdirp = require('mkdirp');
-const root  = path.join(path.dirname(fs.realpathSync(__filename)), '../');
-
 
 const location = process.cwd();
-
 
 const templates = Object.assign(
 	require('./vitreum.templates.js'),
@@ -18,7 +15,7 @@ const templates = Object.assign(
 const LIBS = [
 	'lodash',
 	'react',
-	'react-dom',
+	//'react-dom',
 	'classnames',
 	'express',
 	'app-module-path',
@@ -28,27 +25,57 @@ const LIBS = [
 const makeFile = (name, contents) => { fs.writeFileSync(path.join(location, name), contents); };
 const makeFolder = (name) => { mkdirp.sync(path.join(location, name)); };
 const success = (msg) => { console.log(`${msg} ✓`);}
+const mp = (fn) => {
+	return ()=>{
+		return new Promise((resolve) => {
+			fn(); return resolve();
+		});
+	}
+};
 
+var package = {};
 
-const npmInstall = ()=>{
+const loadPackage = () => {
 	return new Promise((resolve, reject) => {
 		try{
 			const packageRaw = fs.readFileSync(path.join(location, 'package.json'), 'utf8');
 			package = JSON.parse(packageRaw);
-			console.log('Found package.json');
-		}catch(e){
-			throw 'You must run "npm init" first';
-		}
-
-		console.log('Installing dependacies... (this might take a while)');
-		exec(`npm install ${DEPS.join(' ')} --save`, (err, stdOut, stdErr) => {
-			if(err) return reject(stdErr);
-
+			success('loaded package.json');
 			return resolve();
-		})
+		}catch(e){
+			throw 'No package.json found. try running `npm init` first';
+		}
 	});
 };
 
+const addDeps = mp(()=>{
+	package.dependencies = package.dependencies || {};
+	LIBS.forEach((lib) => {
+		package.dependencies[lib] = '*';
+	});
+	success('added dependacies')
+});
+
+
+
+
+const updatePackage = mp(() => {
+	package.main = 'server/server.js';
+
+	package.scripts = {
+		"build": "",
+		"watch": "",
+		"libs": "",
+
+		"postinstall": "npm run build",
+		"start": "node server/server.js"
+	}
+
+
+	///////
+	makeFile('package.json', JSON.stringify(package, null, '  '));
+	success('updated package.json');
+});
 
 /*
 const createGulpFile = ()=>{
@@ -60,12 +87,7 @@ const createGulpFile = ()=>{
 }
 */
 
-const mp = (fn) => {
-	return new Promise((resolve) => {
-		fn(); return resolve();
-	});
-};
-
+const makeTasks = {};
 
 const makeClient = mp(()=>{
 	makeFolder('client');
@@ -75,47 +97,31 @@ const makeClient = mp(()=>{
 	makeFolder('client/main');
 	makeFile('client/main/main.jsx', templates.jsx('main'));
 	makeFile('client/main/main.less', templates.less('main'));
-
 	success('main component');
 });
 
-const makeServer = () => {
-	return new Promise((resolve) => {
-		makeFolder('server');
-		makeFile('server/server.js', templates.server());
-		success('server');
+const makeServer = mp(() => {
+	makeFolder('server');
+	makeFile('server/server.js', templates.server());
+	success('server');
+});
 
-		return resolve();
-	});
-};
+const makeGitIgnore = mp(() => {
+	makeFile('.gitignore', templates.gitignore());
+	success('created gitignore');
+});
 
-const makeGitIgnore = () => {
-	return new Promise((resolve) => {
-		fs.writeFileSync(path.join(location,'.gitignore'), templates.gitIgnore());
-		console.log('Created gitignore');
-		return resolve();
-	});
-}
-
-const cleanupPackage = () => {
-	return new Promise((resolve) => {
-		if(!package) throw 'Could not find a package.json';
-
-		package.main = 'server.js';
-		package.scripts.postinstall = 'gulp prod';
-
-		fs.writeFileSync(path.join(location,'package.json'), JSON.stringify(package, null, '  '));
-		console.log('Updated package.json');
-		return resolve();
-	})
-}
-
-const wrapUp = () => {
-
+const done = () => {
+	console.log('done!');
+	console.log('\nRun the following command:\n');
+	console.log(`    npm i -S ${LIBS.join(' ')}\n\n`);
 };
 
 
-makeClient()
+loadPackage()
+	//.then(addDeps)
+	.then(updatePackage)
+	.then(done)
 	.catch(console.error)
 
 
