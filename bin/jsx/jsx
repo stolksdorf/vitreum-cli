@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const fs   = require('fs');
+const mkdirp = require('mkdirp');
+const templates = require('./jsx.templates.js')
+
+const location = process.cwd();
+
+let componentName = process.argv[2];
+if(!componentName){
+	console.error('Error: You must provide a component name. eg. jsx myComp');
+	return ;
+}
+
+mkdirp(path.join(location, componentName), (err) => {
+	if(err){
+		console.error('Error : There was an error creating the component folder');
+		return;
+	}
+	fs.writeFileSync(
+		path.join(location, componentName, `${componentName}.jsx`),
+		templates.jsx(componentName));
+	console.log(`./${componentName}/${componentName}.jsx ✓`);
+
+	fs.writeFileSync(
+		path.join(location, componentName, `${componentName}.less`),
+		templates.less(componentName));
+	console.log(`./${componentName}/${componentName}.less ✓`);
+});

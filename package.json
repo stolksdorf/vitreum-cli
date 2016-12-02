@@ -1,0 +1,30 @@
+{
+  "name": "vitreum-cli",
+  "version": "0.0.0",
+  "description": "Global commandline tools for Vitreum projects",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stolksdorf/vitreum-cli.git"
+  },
+  "preferGlobal": "true",
+  "bin": {
+    "jsx": "./bin/jsx/jsx",
+    "vitreum": "./bin/bootstrap/bootstrap"
+  },
+  "keywords": [
+    "vitreum"
+  ],
+  "author": "stolksdorf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stolksdorf/vitreum-cli/issues"
+  },
+  "homepage": "https://github.com/stolksdorf/vitreum-cli#readme",
+  "dependencies": {
+    "mkdirp": "^0.5.1"
+  }
+}
