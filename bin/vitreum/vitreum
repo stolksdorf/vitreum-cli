@@ -26,9 +26,9 @@ const LIBS = [
 ];
 
 const makeFile = (name, contents) => { fs.writeFileSync(path.join(location, name), contents); };
-const makeFolder = (name) => { mkdirp.sync(path.join(location, name) };
+const makeFolder = (name) => { mkdirp.sync(path.join(location, name)); };
+const success = (msg) => { console.log(`${msg} ✓`);}
 
-const package;
 
 const npmInstall = ()=>{
 	return new Promise((resolve, reject) => {
@@ -49,6 +49,8 @@ const npmInstall = ()=>{
 	});
 };
 
+
+/*
 const createGulpFile = ()=>{
 	return new Promise((resolve) => {
 		fs.writeFileSync(path.join(location, 'gulpfile.js'), templates.gulp());
@@ -56,44 +58,33 @@ const createGulpFile = ()=>{
 		return resolve();
 	});
 }
+*/
+
 
 const makeClient = ()=>{
+
 	return new Promise((resolve) => {
-		mkdirp(path.join(location, 'client'), (err) => {
-			if(err) throw 'Could not create client folder';
+		makeFolder('client');
+		makeFile('client/template.dot', templates.template());
+		success('client folder');
 
-			fs.writeFileSync(path.join(location, 'client', 'template.dot'), templates.template());
-			console.log('Created root page template');
+		makeFolder('client/main');
+		makeFile('client/main/main.jsx', templates.jsx('main'));
+		makeFile('client/main/main.less', templates.less('main'));
 
-			const name = 'main';
-			mkdirp(path.join(location, 'client', name), (err) => {
-				if(err) throw 'Could not create name component folder';
-				fs.writeFileSync(
-					path.join(location, 'client', name, `${name}.jsx`),
-					jsxTemplates.jsx(name));
-				fs.writeFileSync(
-					path.join(location, 'client', name, `${name}.less`),
-					jsxTemplates.less(name));
-				console.log('Created main component');
-				return resolve();
-			});
-		});
-	})
-}
+		success('main component');
+
+		return resolve();
+	});
+};
 
 const makeServer = () => {
 	return new Promise((resolve) => {
-		fs.writeFileSync(path.join(location,'server.js'), templates.server());
-		console.log('Created server.js');
-		mkdirp(path.join(location, 'server'), (err) => {
-			if(err) throw 'Could not create server folder';
-			console.log('Created server folder');
-			mkdirp(path.join(location, 'shared'), (err) => {
-				if(err) throw 'Could not create shared folder';
-				console.log('Created shared folder');
-				return resolve();
-			});
-		});
+		makeFolder('server');
+		makeFile('server/server.js', templates.server());
+		success('server');
+
+		return resolve();
 	});
 };
 
@@ -119,14 +110,12 @@ const cleanupPackage = () => {
 }
 
 const wrapUp = () => {
-	return new Promise((resolve) => {
-		console.log('\n\nDone!');
-		console.log('\n`gulp fresh && gulp` to do a fresh build');
-	});
+
 };
 
 
-makeFolder('cool')
+makeClient()
+	.catch(console.error)
 
 
 /*
@@ -138,6 +127,6 @@ npmInstall()
 	.then(cleanupPackage)
 	.then(wrapUp)
 	.catch((err) => {
-		console.log(`ERR: ${err.toString()}`);
+		(err);
 	})
 */

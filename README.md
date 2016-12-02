@@ -15,5 +15,8 @@ npm install --global vitreum-cli
 
 
 ### dev
-run `npm link` in your project directory, then you can test running the above commands locally.
 
+1. Create a `/test` directory
+1. run `npm link` in your project directory.
+1. `cd test`
+1. Test the above commands locally
