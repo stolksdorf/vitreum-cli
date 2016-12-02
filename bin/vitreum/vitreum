@@ -60,23 +60,24 @@ const createGulpFile = ()=>{
 }
 */
 
-
-const makeClient = ()=>{
-
+const mp = (fn) => {
 	return new Promise((resolve) => {
-		makeFolder('client');
-		makeFile('client/template.dot', templates.template());
-		success('client folder');
-
-		makeFolder('client/main');
-		makeFile('client/main/main.jsx', templates.jsx('main'));
-		makeFile('client/main/main.less', templates.less('main'));
-
-		success('main component');
-
-		return resolve();
+		fn(); return resolve();
 	});
 };
+
+
+const makeClient = mp(()=>{
+	makeFolder('client');
+	makeFile('client/template.dot', templates.template());
+	success('client folder');
+
+	makeFolder('client/main');
+	makeFile('client/main/main.jsx', templates.jsx('main'));
+	makeFile('client/main/main.less', templates.less('main'));
+
+	success('main component');
+});
 
 const makeServer = () => {
 	return new Promise((resolve) => {
