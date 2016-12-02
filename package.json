@@ -13,7 +13,7 @@
   "preferGlobal": "true",
   "bin": {
     "jsx": "./bin/jsx/jsx",
-    "vitreum": "./bin/bootstrap/bootstrap"
+    "vitreum": "./bin/vitreum/vitreum"
   },
   "keywords": [
     "vitreum"
