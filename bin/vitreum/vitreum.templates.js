@@ -1,106 +1,111 @@
 
 module.exports = {
 
-/* ---- GULP ---- */
-
-	gulp : () => {
-		return `var vitreumTasks = require('vitreum/tasks');
-var gulp = require('gulp');
-
-var gulp = vitreumTasks(gulp, {
-	entryPoints: [
-		'./client/main'
-	],
-
-	DEV: true,
-	buildPath: './build/',
-	pageTemplate: './client/template.dot',
-	projectModules: [],
-	additionalRequirePaths : ['./node_modules'],
-	assetExts: ['*.svg', '*.png', '*.jpg', '*.pdf', '*.eot', '*.otf', '*.woff', '*.woff2', '*.ico', '*.ttf'],
-	serverWatchPaths: ['server'],
-	serverScript: 'server.js',
-	libs: [
-		'react',
-		'react-dom',
-		'lodash',
-		'classnames'
-	],
-	clientLibs: [],
-});
-`;
-	},
 
 /* ---- SERVER ---- */
 
 	server : () => {
-		return `require('app-module-path').addPath('./shared');
-
-var _ = require('lodash');
-var vitreumRender = require('vitreum/render');
-var express = require('express');
-var app = express();
+		return `
+const _ = require('lodash');
+const config = require('nconf');
+const express = require("express");
+const app = express();
 app.use(express.static(__dirname + '/build'));
 
-app.get('*', function (req, res) {
-	vitreumRender({
-		page: './build/main/bundle.dot',
-		globals:{},
-		prerenderWith : './client/main/main.jsx',
-		initialProps: {
-			url: req.originalUrl,
-		},
-		clearRequireCache : !process.env.PRODUCTION,
-	}, function (err, page) {
-		return res.send(page)
-	});
+config.argv()
+	.env({ lowerCase: true })
+	.file('environment', { file: \`config/\${process.env.NODE_ENV}.json\` })
+	.file('defaults', { file: 'config/default.json' });
+
+const templateFn = require('./client/template.js');
+const render = require('vitreum/steps/render');
+
+app.get('*', (req, res) => {
+	render('main', templateFn, {
+			url : req.url
+		})
+		.then((page) => {
+			return res.send(page);
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 });
 
-var port = process.env.PORT || 8000;
-app.listen(port);
-console.log('Listening on localhost:' + port);
+const PORT = process.env.PORT || 8000;
+app.listen(PORT);
+console.log(\`server on port:\${PORT}\`);
 `;
 	},
-
 
 	/* ---- TEMPLATE ---- */
-
 	template : () => {
-		return `<!DOCTYPE html>
-<html>
+		return `
+module.exports = (vitreum) => {
+return \`<html>
 	<head>
-		<script>global=window</script>
-		<link href='//netdna.bootstrapcdn.com/font-awesome/4.6.2/css/font-awesome.min.css' rel='stylesheet' />
-		<link href='//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700' rel='stylesheet' type='text/css' />
-		<link rel='icon' href='/assets/main/favicon.ico' type='image/x-icon' />
-		{{=vitreum.css}}
-		{{=vitreum.globals}}
-		<title>New Project</title>
+		<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+		<link href="//fonts.googleapis.com/css?family=Open+Sans:400,300,600,700" rel="stylesheet" type="text/css" />
+
+		\${vitreum.head}
 	</head>
 	<body>
-		<div id='reactContainer'>{{=vitreum.component}}</div>
+		<main id="reactRoot">\${vitreum.body}</main>
 	</body>
-	{{=vitreum.libs}}
-	{{=vitreum.js}}
-	{{=vitreum.reactRender}}
-
-	{{? vitreum.inProduction}}
-		<!-- Put PRoduction only code here -->
-	{{?}}
-</html>
-`;
+	\${vitreum.js}
+</html>\`;
+};`;
 	},
 
-	/* ---- GITIGNORE ---- */
 
-	gitIgnore : () => {
-		return `logs
-*.log
 
-build/*
-architecture.json
+	/* ----- BUILD SCRIPT ---- */
+	buildScript : () => {
+		return `
+const label = 'build';
+console.time(label);
 
-node_modules
-`;
-		},
+const clean = require('vitreum/steps/clean').partial;
+const jsx = require('vitreum/steps/jsx').partial;
+const lib = require('vitreum/steps/libs').partial;
+const less = require('vitreum/steps/less').partial;
+const asset = require('vitreum/steps/assets').partial;
+
+const Proj = require('./project.json');
+
+Promise.resolve()
+	.then(clean())
+	.then(lib(Proj.libs))
+	.then(jsx('main', './client/main/main.jsx', Proj.libs, ['./shared']))
+	.then(less('main', ['./shared']))
+	.then(asset(Proj.assets, ['./shared', './client']))
+	.then(console.timeEnd.bind(console, label))
+	.catch(console.error);`;
+	},
+
+	/* ----- DEV SCRIPT ---- */
+	devScript : () => {
+		return `
+const label = 'dev';
+console.time(label);
+
+const jsx = require('vitreum/steps/jsx.watch').partial;
+const less = require('vitreum/steps/less.watch').partial;
+const assets = require('vitreum/steps/assets.watch').partial;
+const server = require('vitreum/steps/server.watch').partial;
+const livereload = require('vitreum/steps/livereload').partial;
+
+const Proj = require('./project.json');
+
+Promise.resolve()
+	.then(jsx('main', './client/main/main.jsx', Proj.libs, ['./shared']))
+	.then(less('main', ['./shared']))
+	.then(assets(Proj.assets, ['./shared', './client']))
+	.then(livereload())
+	.then(server('./server.js', ['server']))
+	.then(()=> { console.timeEnd(label) })
+	.catch(console.error)`;
+	},
+
+
 }

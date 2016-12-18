@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const fs   = require('fs');
-const mkdirp = require('mkdirp');
+const fse   = require('fs-extra');
+const chalk = require('chalk');
+
 
 const location = process.cwd();
 
@@ -14,17 +15,16 @@ const templates = Object.assign(
 
 const LIBS = [
 	'lodash',
-	'react',
-	//'react-dom',
-	'classnames',
+	//'classnames',
 	'express',
-	'app-module-path',
-	'vitreum'
+	'vitreum',
+	'nconf'
 ];
 
-const makeFile = (name, contents) => { fs.writeFileSync(path.join(location, name), contents); };
-const makeFolder = (name) => { mkdirp.sync(path.join(location, name)); };
-const success = (msg) => { console.log(`${msg} ✓`);}
+const success = (msg) => {
+	console.log(chalk.green('✓ ') + msg);
+};
+
 const mp = (fn) => {
 	return ()=>{
 		return new Promise((resolve) => {
@@ -33,107 +33,109 @@ const mp = (fn) => {
 	}
 };
 
+
+
 var package = {};
 
 const loadPackage = () => {
 	return new Promise((resolve, reject) => {
-		try{
-			const packageRaw = fs.readFileSync(path.join(location, 'package.json'), 'utf8');
-			package = JSON.parse(packageRaw);
-			success('loaded package.json');
-			return resolve();
-		}catch(e){
-			throw 'No package.json found. try running `npm init` first';
-		}
+		fse.readJson('./package.json', (err, packageObj) => {
+			if(err) return reject('No package.json found. try running `npm init` first');
+			package = packageObj;
+			return resolve(packageObj);
+		});
 	});
 };
 
-const addDeps = mp(()=>{
-	package.dependencies = package.dependencies || {};
-	LIBS.forEach((lib) => {
-		package.dependencies[lib] = '*';
-	});
-	success('added dependacies')
-});
-
-
-
-
 const updatePackage = mp(() => {
-	package.main = 'server/server.js';
-
+	package.main = 'server.js';
 	package.scripts = {
-		"build": "",
-		"watch": "",
-		"libs": "",
+		"dev"  : "node scripts/dev.js",
+		"build": "node scripts/build.js",
+		"prod" : "set NODE_ENV=production&& npm run build",
 
 		"postinstall": "npm run build",
-		"start": "node server/server.js"
-	}
-
-
-	///////
-	makeFile('package.json', JSON.stringify(package, null, '  '));
+		"start" : "node server.js"
+	};
+	fse.writeJsonSync('./package.json', package);
 	success('updated package.json');
 });
 
-/*
-const createGulpFile = ()=>{
-	return new Promise((resolve) => {
-		fs.writeFileSync(path.join(location, 'gulpfile.js'), templates.gulp());
-		console.log('Created gulpfile.js');
-		return resolve();
-	});
-}
-*/
-
-const makeTasks = {};
-
 const makeClient = mp(()=>{
-	makeFolder('client');
-	makeFile('client/template.dot', templates.template());
-	success('client folder');
+	fse.outputFileSync('./client/template.js', templates.template());
 
-	makeFolder('client/main');
-	makeFile('client/main/main.jsx', templates.jsx('main'));
-	makeFile('client/main/main.less', templates.less('main'));
-	success('main component');
+	fse.outputFileSync('./client/main/main.jsx', templates.jsx('main'));
+	fse.outputFileSync('./client/main/main.less', templates.less('main'));
+	success('created main component');
 });
 
 const makeServer = mp(() => {
-	makeFolder('server');
-	makeFile('server/server.js', templates.server());
-	success('server');
+	fse.outputFileSync('./server.js', templates.server());
+	fse.outputFileSync('./server/routes.js', '');
+	success('created server files');
 });
 
-const makeGitIgnore = mp(() => {
-	makeFile('.gitignore', templates.gitignore());
-	success('created gitignore');
+const makeDotFiles = mp(() => {
+	fse.outputFileSync('.gitignore', [
+		'*.log',
+		'build',
+		'node_modules'
+	].join('\n'));
+	success('created .gitignore');
+
+	fse.outputJsonSync('.babelrc', {
+		"presets": ["env", "react"]
+	});
+	success('created .babelrc');
 });
+
+const makeConfig = mp(()=>{
+	fse.outputJsonSync('./config/default.json', {});
+	fse.outputJsonSync('./config/local.json', {});
+	success('created configs');
+});
+
+const makeScripts = mp(()=>{
+	fse.outputJsonSync('./scripts/project.json', {
+		"entryPoints" : {
+			"main" : "./client/main/main.jsx"
+		},
+		"assets" : ["*.svg", "*.png", "*.jpg", "*.otf", "*.woff", "*.ico", "*.ttf"],
+		"libs" : [
+			"react",
+			"react-dom",
+			"lodash",
+			"classnames"
+		]
+	});
+	fse.outputFileSync('./scripts/build.js', templates.buildScript());
+	fse.outputFileSync('./scripts/dev.js', templates.devScript());
+	success('created build scripts');
+});
+
+const makeShared = mp(()=>{
+	fse.outputFileSync('./shared/build.js', templates.buildScript());
+	fse.outputFileSync('./shared/dev.js', templates.devScript());
+	success('created shared');
+});
+
 
 const done = () => {
 	console.log('done!');
-	console.log('\nRun the following command:\n');
-	console.log(`    npm i -S ${LIBS.join(' ')}\n\n`);
+	console.log('\nInstall the following libs:');
+	console.log(chalk.cyan(`  npm i -S ${LIBS.join(' ')}\n`));
+
+	//TODO: add suggestions for optional libs, date-fns, your style module, etc.
 };
 
 
 loadPackage()
-	//.then(addDeps)
 	.then(updatePackage)
+	.then(makeClient)
+	.then(makeScripts)
+	.then(makeServer)
+	.then(makeShared)
+	.then(makeDotFiles)
+	.then(makeConfig)
 	.then(done)
 	.catch(console.error)
-
-
-/*
-npmInstall()
-	.then(createGulpFile)
-	.then(makeClient)
-	.then(makeServer)
-	.then(makeGitIgnore)
-	.then(cleanupPackage)
-	.then(wrapUp)
-	.catch((err) => {
-		(err);
-	})
-*/
