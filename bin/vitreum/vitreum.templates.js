@@ -103,8 +103,7 @@ Promise.resolve()
 	.then(assets(Proj.assets, ['./shared', './client']))
 	.then(livereload())
 	.then(server('./server.js', ['server']))
-	.then(()=> { console.timeEnd(label) })
-	.catch(console.error)`;
+	.then(()=> { console.timeEnd(label) })`;
 	},
 
 
