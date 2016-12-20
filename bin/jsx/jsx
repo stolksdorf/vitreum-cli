@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const fs   = require('fs');
-const mkdirp = require('mkdirp');
+const fse   = require('fs-extra');
 const templates = require('./jsx.templates.js')
 
 const location = process.cwd();
@@ -13,18 +12,8 @@ if(!componentName){
 	return ;
 }
 
-mkdirp(path.join(location, componentName), (err) => {
-	if(err){
-		console.error('Error : There was an error creating the component folder');
-		return;
-	}
-	fs.writeFileSync(
-		path.join(location, componentName, `${componentName}.jsx`),
-		templates.jsx(componentName));
-	console.log(`./${componentName}/${componentName}.jsx ✓`);
+fse.outputFileSync(path.join(location, componentName, `${componentName}.jsx`), templates.jsx(componentName));
+console.log(`./${componentName}/${componentName}.jsx ✓`);
 
-	fs.writeFileSync(
-		path.join(location, componentName, `${componentName}.less`),
-		templates.less(componentName));
-	console.log(`./${componentName}/${componentName}.less ✓`);
-});
+fse.outputFileSync(path.join(location, componentName, `${componentName}.less`), templates.less(componentName));
+console.log(`./${componentName}/${componentName}.less ✓`);
