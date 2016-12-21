@@ -79,7 +79,8 @@ const makeDotFiles = mp(() => {
 	fse.outputFileSync('.gitignore', [
 		'*.log',
 		'build',
-		'node_modules'
+		'node_modules',
+		'config/local.json'
 	].join('\n'));
 	success('created .gitignore');
 
