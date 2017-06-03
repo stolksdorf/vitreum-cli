@@ -10,18 +10,19 @@ const React = require('react');
 const _     = require('lodash');
 const cx    = require('classnames');
 
-const ${Name} = React.createClass({
-	getDefaultProps: function() {
-		return {
+class ${Name} extends React.Component {
+    
+    constructor(props) {
+        super(props);
+    }
 
-		};
-	},
-	render: function(){
-		return <div className='${name}'>
-			${Name} Component Ready.
-		</div>
-	}
-});
+    render() {
+        return <div className='${name}'>
+            ${Name} Component Ready.
+        </div>
+    }
+
+}
 
 module.exports = ${Name};
 `;
