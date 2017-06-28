@@ -4,11 +4,11 @@ module.exports = {
 
 /* ---- SERVER ---- */
 
-	server : () => {
+	server : ()=>{
 		return `
 const _ = require('lodash');
 const config = require('nconf');
-const express = require("express");
+const express = require('express');
 const app = express();
 app.use(express.static(__dirname + '/build'));
 
@@ -17,31 +17,27 @@ config.argv()
 	.file('environment', { file: \`config/\${process.env.NODE_ENV}.json\` })
 	.file('defaults', { file: 'config/default.json' });
 
-const templateFn = require('./client/template.js');
+const templateFn = require('./server/page.template.js');
 const render = require('vitreum/steps/render');
 
-app.get('*', (req, res) => {
+app.get('*', (req, res)=>{
 	render('main', templateFn, {
 			url : req.url
 		})
-		.then((page) => {
-			return res.send(page);
-		})
-		.catch((err) => {
-			console.log(err);
-		});
+		.then((page)=>res.send(page))
+		.catch((err)=>console.log(err));
 });
 
-const PORT = process.env.PORT || 8000;
+const PORT = config.get('port');
 app.listen(PORT);
 console.log(\`server on port:\${PORT}\`);
 `;
 	},
 
 	/* ---- TEMPLATE ---- */
-	template : () => {
+	template : ()=>{
 		return `
-module.exports = (vitreum) => {
+module.exports = (vitreum)=>{
 return \`<html>
 	<head>
 		<link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
@@ -60,50 +56,41 @@ return \`<html>
 
 
 	/* ----- BUILD SCRIPT ---- */
-	buildScript : () => {
+	buildScript : ()=>{
 		return `
 const label = 'build';
 console.time(label);
 
-const clean = require('vitreum/steps/clean').partial;
-const jsx = require('vitreum/steps/jsx').partial;
-const lib = require('vitreum/steps/libs').partial;
-const less = require('vitreum/steps/less').partial;
-const asset = require('vitreum/steps/assets').partial;
-
+const steps = require('vitreum/steps');
 const Proj = require('./project.json');
 
 Promise.resolve()
-	.then(clean())
-	.then(lib(Proj.libs))
-	.then(jsx('main', './client/main/main.jsx', Proj.libs, ['./shared']))
-	.then(less('main', ['./shared']))
-	.then(asset(Proj.assets, ['./shared', './client']))
-	.then(console.timeEnd.bind(console, label))
-	.catch(console.error);`;
+	.then(()=>steps.clean())
+	.then(()=>steps.lib(Proj.libs))
+	.then(()=>steps.jsx('main', './client/main/main.jsx', Proj.libs))
+	.then((deps)=>steps.less('main', [], deps))
+	.then(()=>steps.asset(Proj.assets, ['./client']))
+	.then(()=>console.timeEnd(label))
+	.catch((err)=>console.error(err));`;
 	},
 
 	/* ----- DEV SCRIPT ---- */
-	devScript : () => {
+	devScript : ()=>{
 		return `
 const label = 'dev';
 console.time(label);
-
-const jsx = require('vitreum/steps/jsx.watch').partial;
-const less = require('vitreum/steps/less.watch').partial;
-const assets = require('vitreum/steps/assets.watch').partial;
-const server = require('vitreum/steps/server.watch').partial;
-const livereload = require('vitreum/steps/livereload').partial;
+const steps = require('vitreum/steps');
 
 const Proj = require('./project.json');
 
 Promise.resolve()
-	.then(jsx('main', './client/main/main.jsx', Proj.libs, ['./shared']))
-	.then(less('main', ['./shared']))
-	.then(assets(Proj.assets, ['./shared', './client']))
-	.then(livereload())
-	.then(server('./server.js', ['server']))
-	.then(()=> { console.timeEnd(label) })`;
+	.then(()=>steps.jsxWatch('main', './client/main/main.jsx', Proj.libs))
+	.then((deps)=>steps.lessWatch('main', [], deps))
+	.then(()=>steps.assetsWatch(Proj.assets, ['./client']))
+	.then(()=>steps.livereload())
+	.then(()=>steps.serverWatch('./server.js', ['server']))
+	.then(()=>console.timeEnd(label))
+	.catch((err)=>console.error(err));`;
 	},
 
 

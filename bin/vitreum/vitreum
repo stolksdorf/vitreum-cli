@@ -15,15 +15,13 @@ const templates = Object.assign(
 
 const LIBS = [
 	'lodash',
-	//'classnames',
+	'react',
 	'express',
 	'vitreum',
 	'nconf'
 ];
 
-const success = (msg) => {
-	console.log(chalk.green('✓ ') + msg);
-};
+const success = (msg) => console.log(chalk.green('✓ ') + msg);
 
 const mp = (fn) => {
 	return ()=>{
@@ -62,8 +60,6 @@ const updatePackage = mp(() => {
 });
 
 const makeClient = mp(()=>{
-	fse.outputFileSync('./client/template.js', templates.template());
-
 	fse.outputFileSync('./client/main/main.jsx', templates.jsx('main'));
 	fse.outputFileSync('./client/main/main.less', templates.less('main'));
 	success('created main component');
@@ -72,6 +68,7 @@ const makeClient = mp(()=>{
 const makeServer = mp(() => {
 	fse.outputFileSync('./server.js', templates.server());
 	fse.outputFileSync('./server/routes.js', '');
+	fse.outputFileSync('./server/page.template.js', templates.template());
 	success('created server files');
 });
 
@@ -84,14 +81,14 @@ const makeDotFiles = mp(() => {
 	].join('\n'));
 	success('created .gitignore');
 
-	fse.outputJsonSync('.babelrc', {
-		"presets": ["env", "react"]
-	});
-	success('created .babelrc');
+	// fse.outputJsonSync('.babelrc', {
+	// 	"presets": ["env", "react"]
+	// });
+	// success('created .babelrc');
 });
 
 const makeConfig = mp(()=>{
-	fse.outputJsonSync('./config/default.json', {});
+	fse.outputJsonSync('./config/default.json', { port : 8000 });
 	fse.outputJsonSync('./config/local.json', {});
 	success('created configs');
 });
@@ -114,17 +111,17 @@ const makeScripts = mp(()=>{
 	success('created build scripts');
 });
 
-const makeShared = mp(()=>{
-	fse.outputFileSync('./shared/build.js', templates.buildScript());
-	fse.outputFileSync('./shared/dev.js', templates.devScript());
-	success('created shared');
-});
+// const makeShared = mp(()=>{
+// 	fse.outputFileSync('./shared/build.js', templates.buildScript());
+// 	fse.outputFileSync('./shared/dev.js', templates.devScript());
+// 	success('created shared');
+// });
 
 
 const done = () => {
 	console.log('done!');
 	console.log('\nInstall the following libs:');
-	console.log(chalk.cyan(`  npm i -S ${LIBS.join(' ')}\n`));
+	console.log(chalk.cyan(`  npm i ${LIBS.join(' ')}\n`));
 
 	//TODO: add suggestions for optional libs, date-fns, your style module, etc.
 };
@@ -135,7 +132,7 @@ loadPackage()
 	.then(makeClient)
 	.then(makeScripts)
 	.then(makeServer)
-	.then(makeShared)
+	//.then(makeShared)
 	.then(makeDotFiles)
 	.then(makeConfig)
 	.then(done)

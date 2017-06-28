@@ -10,9 +10,9 @@ npm install --global vitreum-cli
 
 ## commands
 
-### `jsx [componentName]`
+### `jsx [--smart] [componentName]`
 
-Creates a folder at your location of the component name, and a `.jsx` and `.less` file populated to be a functioning React component.
+Creates a folder at your location of the component name, and a `.jsx` and `.less` file populated to be a functioning React component. If you specify `--smart` it will also create a smart component as well.
 
 
 ### `vitreum`
