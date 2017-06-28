@@ -47,8 +47,6 @@ Bootstraps a Vitreum project at the current location. Requires a `package.json` 
 
 
 
-
-
 # dev
 To work on this, follow the steps.
 

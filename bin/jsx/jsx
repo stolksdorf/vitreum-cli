@@ -2,13 +2,15 @@
 
 const path = require('path');
 const fse   = require('fs-extra');
+const parseArgs = require('minimist')
 const templates = require('./jsx.templates.js')
 
 const location = process.cwd();
+const args = parseArgs(process.argv.slice(2), {boolean:true});
 
-let componentName = process.argv[2];
+let componentName = args._[0];
 if(!componentName){
-	console.error('Error: You must provide a component name. eg. jsx myComp');
+	console.error('Error: You must provide a component name. eg. jsx myComp. Add --smart for a smart component');
 	return ;
 }
 
@@ -17,3 +19,8 @@ console.log(`./${componentName}/${componentName}.jsx ✓`);
 
 fse.outputFileSync(path.join(location, componentName, `${componentName}.less`), templates.less(componentName));
 console.log(`./${componentName}/${componentName}.less ✓`);
+
+if(args.smart){
+	fse.outputFileSync(path.join(location, componentName, `${componentName}.smart.jsx`), templates.smart(componentName));
+	console.log(`./${componentName}/${componentName}.smart.jsx ✓`);
+}

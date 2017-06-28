@@ -5,12 +5,11 @@ const capitalize = (string) => {
 module.exports = {
 	jsx : (name) => {
 		const Name = capitalize(name);
-		return `
-const React = require('react');
+		return `const React = require('react');
 const _     = require('lodash');
-const cx    = require('classnames');
+const createClass = require('create-react-class');
 
-const ${Name} = React.createClass({
+const ${Name} = createClass({
 	getDefaultProps: function() {
 		return {
 
@@ -28,5 +27,17 @@ module.exports = ${Name};
 	},
 	less : (name) => {
 		return `.${name}{\n\n}`;
+	},
+	smart : (name) => {
+		const Name = capitalize(name);
+		return `const Store = require('store.js');
+const ${Name} = require('./{name}.jsx')
+
+module.exports = Store.createSmartComponent(${Name}, (props)=>{
+	return {
+
+	};
+});
+`;
 	}
 }
