@@ -102,6 +102,7 @@ const makeScripts = mp(()=>{
 		"libs" : [
 			"react",
 			"react-dom",
+			"create-react-class",
 			"lodash",
 			"classnames"
 		]

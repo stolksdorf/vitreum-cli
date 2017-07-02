@@ -5,8 +5,7 @@ module.exports = {
 /* ---- SERVER ---- */
 
 	server : ()=>{
-		return `
-const _ = require('lodash');
+		return `const _ = require('lodash');
 const config = require('nconf');
 const express = require('express');
 const app = express();
@@ -66,7 +65,7 @@ const Proj = require('./project.json');
 
 Promise.resolve()
 	.then(()=>steps.clean())
-	.then(()=>steps.lib(Proj.libs))
+	.then(()=>steps.libs(Proj.libs))
 	.then(()=>steps.jsx('main', './client/main/main.jsx', Proj.libs))
 	.then((deps)=>steps.less('main', [], deps))
 	.then(()=>steps.asset(Proj.assets, ['./client']))
