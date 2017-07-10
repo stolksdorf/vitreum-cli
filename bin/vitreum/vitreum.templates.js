@@ -66,8 +66,8 @@ const Proj = require('./project.json');
 Promise.resolve()
 	.then(()=>steps.clean())
 	.then(()=>steps.libs(Proj.libs))
-	.then(()=>steps.jsx('main', './client/main/main.jsx', Proj.libs))
-	.then((deps)=>steps.less('main', [], deps))
+	.then(()=>steps.jsx('main', './client/main/main.jsx', {libs : Proj.libs}))
+	.then((deps)=>steps.less('main', {}, deps))
 	.then(()=>steps.asset(Proj.assets, ['./client']))
 	.then(()=>console.timeEnd(label))
 	.catch((err)=>console.error(err));`;
@@ -83,8 +83,8 @@ const steps = require('vitreum/steps');
 const Proj = require('./project.json');
 
 Promise.resolve()
-	.then(()=>steps.jsxWatch('main', './client/main/main.jsx', Proj.libs))
-	.then((deps)=>steps.lessWatch('main', [], deps))
+	.then(()=>steps.jsxWatch('main', './client/main/main.jsx', {libs : Proj.libs}))
+	.then((deps)=>steps.lessWatch('main', {}, deps))
 	.then(()=>steps.assetsWatch(Proj.assets, ['./client']))
 	.then(()=>steps.livereload())
 	.then(()=>steps.serverWatch('./server.js', ['server']))
