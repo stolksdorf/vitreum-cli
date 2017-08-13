@@ -26,8 +26,10 @@ Bootstraps a Vitreum project at the current location. Requires a `package.json` 
 /myProj
 ├─ /build/...
 ├─ /node_modules/...
+├─ .eslint.json
 ├─ /client
-|   ├─ template.js
+|   ├─ /shared
+|   |  └─ /navbar...
 |   └─ /main
 |      ├─ main.jsx
 |      └─ main.less
@@ -38,20 +40,16 @@ Bootstraps a Vitreum project at the current location. Requires a `package.json` 
 |   ├─ build.js
 |   ├─ dev.js
 |   └─ project.json
-├─ /shared
-|   └─ /myProj/...
-├─ /server
-|   └─ routes.js
-└─ server.js
+└─ /server
+   ├─ server.js
+   ├─ page.template.js
+   └─ routes.js
 ```
-
 
 
 # dev
 To work on this, follow the steps.
 
 1. clone it
-1. Create a `/test` directory within the project
 1. run `npm link` in your project directory.
-1. `cd test`
-1. Test the above commands locally
+1. `npm run test`
