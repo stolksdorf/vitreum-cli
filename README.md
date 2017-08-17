@@ -10,9 +10,13 @@ npm install --global vitreum-cli
 
 ## commands
 
-### `jsx [--smart] [componentName]`
+### `jsx [-s || --smart] [-p || --pure] [componentName]`
 
-Creates a folder at your location of the component name, and a `.jsx` and `.less` file populated to be a functioning React component. If you specify `--smart` it will also create a smart component as well.
+Creates a folder at your location of the component name, and a `.jsx` and `.less` file populated to be a functioning React component.
+
+If you specify `--pure` or `-p` it will instead create a [functional/pure component](https://facebook.github.io/react/docs/components-and-props.html#functional-and-class-components).
+
+If you specify `--smart` or `-s` it will also create a [smart component](https://github.com/stolksdorf/pico-flux#example-smart-componentjsx) as well.
 
 
 ### `vitreum`

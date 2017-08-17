@@ -14,13 +14,20 @@ if(!componentName){
 	return ;
 }
 
-fse.outputFileSync(path.join(location, componentName, `${componentName}.jsx`), templates.jsx(componentName));
-console.log(`./${componentName}/${componentName}.jsx ✓`);
+if(args.pure || args.p){
+	fse.outputFileSync(path.join(location, componentName, `${componentName}.jsx`), templates.pure(componentName));
+	console.log(`./${componentName}/${componentName}.jsx ✓`);
+}else{
+	fse.outputFileSync(path.join(location, componentName, `${componentName}.jsx`), templates.jsx(componentName));
+	console.log(`./${componentName}/${componentName}.jsx ✓`);
+}
 
 fse.outputFileSync(path.join(location, componentName, `${componentName}.less`), templates.less(componentName));
 console.log(`./${componentName}/${componentName}.less ✓`);
 
-if(args.smart){
+if(args.smart || args.s){
 	fse.outputFileSync(path.join(location, componentName, `${componentName}.smart.jsx`), templates.smart(componentName));
 	console.log(`./${componentName}/${componentName}.smart.jsx ✓`);
 }
+
+

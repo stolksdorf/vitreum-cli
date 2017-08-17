@@ -26,13 +26,30 @@ const ${Name} = createClass({
 module.exports = ${Name};
 `;
 	},
+	pure : (name) => {
+			const Name = capitalize(name);
+			return `const React = require('react');
+const _     = require('lodash');
+
+
+module.exports = (props)=>{
+	props = _.defaults(props, {
+
+	});
+
+	return <div className='${name}'>
+		${Name} Pure Component Ready.
+	</div>;
+};
+`;
+	},
 	less : (name) => {
 		return `.${name}{\n\n}`;
 	},
 	smart : (name) => {
 		const Name = capitalize(name);
 		return `const Store = require('store.js');
-const ${Name} = require('./{name}.jsx');
+const ${Name} = require('./${name}.jsx');
 
 module.exports = Store.createSmartComponent(${Name}, (props)=>{
 	return {
@@ -40,5 +57,5 @@ module.exports = Store.createSmartComponent(${Name}, (props)=>{
 	};
 });
 `;
-	}
-}
+	},
+};

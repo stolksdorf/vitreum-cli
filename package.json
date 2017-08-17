@@ -4,7 +4,7 @@
   "description": "Global commandline tools for Vitreum projects",
   "main": "index.js",
   "scripts": {
-    "test" : "((rmdir /S /Q test && mkdir test) || mkdir test) && cd test && npm init -f && vitreum"
+    "test": "((rmdir /S /Q test && mkdir test) || mkdir test) && cd test && npm init -f && vitreum"
   },
   "repository": {
     "type": "git",
