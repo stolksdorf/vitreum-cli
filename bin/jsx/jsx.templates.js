@@ -7,7 +7,7 @@ module.exports = {
 		const Name = capitalize(name);
 		return `const React       = require('react');
 const createClass = require('create-react-class');
-const _           = require('lodash');
+const _           = require('lodash/core');
 
 
 const ${Name} = createClass({
@@ -27,15 +27,15 @@ module.exports = ${Name};
 `;
 	},
 	pure : (name) => {
-			const Name = capitalize(name);
-			return `const React = require('react');
-const _     = require('lodash');
+		const Name = capitalize(name);
+		return `const React = require('react');
+const _     = require('lodash/core');
 
 module.exports = ({
 	className = '',
 	...props
 })=>{
-	return <div className='${name}' {...props}>
+	return <div className={\`${name} \${className}\`} {...props}>
 		${Name} Pure Component Ready.
 	</div>;
 };

@@ -12,21 +12,22 @@ const templates = Object.assign(
 	require('../jsx/jsx.templates.js')
 );
 
-const LIBS = [
+const CORE_LIBS = [
+	'babel-preset-stage-3',
+	'babel-preset-react',
+	'create-react-class',
 	'lodash',
 	'react',
-	'create-react-class',
-	'classnames',
-	'express',
+	'react-dom',
 	'vitreum',
-	'nconf'
+	'express',
 ];
 
-let DEV_LIBS = [
-	'cross-env'
-];
+let LIBS = [];
 
-//let package = {};
+let DEV_LIBS = ['cross-env', 'fixme'];
+
+let package = {};
 
 const loadPackage = () => {
 	return new Promise((resolve, reject) => {
@@ -39,114 +40,137 @@ const loadPackage = () => {
 };
 
 const updatePackage = () => {
-	package.main = 'server.js';
+	package.main = 'app.js';
 
-	package.scripts.dev         = "node scripts/dev.js";
-	package.scripts.build       = "node scripts/build.js";
-	package.scripts.prod        = "cross-env NODE_ENV=production && npm run build";
+	package.scripts.dev         = "node scripts/dev.script.js";
+	package.scripts.build       = "node scripts/build.script.js";
+	package.scripts.prod        = "cross-env NODE_ENV=production && npm run build && npm run start";
 	package.scripts.postinstall = "npm run build";
-	package.scripts.start       = "node server/server.js";
+	package.scripts.start       = "node app.js";
+	package.scripts.todo        = "fixme -i build/** -i node_modules/** **/*.{js,jsx,less}";
+
+	package.babel = {
+		only: ['*.jsx'],
+		presets: ['stage-3', 'react']
+	};
+
+	package.engines = {
+		node: "^6.3.0",
+		npm: "^5.3.0"
+	};
 
 	fse.writeJsonSync('./package.json', package);
 	success('updated package.json');
 };
 
 const makeClient = ()=>{
-	fse.outputFileSync('./client/main/main.jsx', templates.jsx('main'));
+	LIBS.push('nconf');
+	LIBS.push('classnames');
+	LIBS.push('pico-router');
+	//add in a routing comp
+	//add in pages
+	fse.outputFileSync('./client/main/main.jsx', templates.client.main());
 	fse.outputFileSync('./client/main/main.less', templates.less('main'));
-	success('created main component');
+	fse.outputFileSync('./client/main/home/home.jsx', templates.client.homePage());
+	fse.outputFileSync('./client/main/home/home.less', templates.less('home.page'));
+	success('created main component and home page');
 };
 
 const makeServer = () => {
-	fse.outputFileSync('./server/server.js', templates.server());
-	fse.outputFileSync('./server/routes.js', '');
-	fse.outputFileSync('./server/page.template.js', templates.template());
+	fse.outputFileSync('./app.js', templates.server.app())
+	fse.outputFileSync('./server/server.js', templates.server.server());
+	fse.outputFileSync('./server/page.router.js', templates.server.pageRouter());
+	fse.outputFileSync('./server/page.template.js', templates.server.pageTemplate(package.name));
 	success('created server files');
 };
 
 const makeDotFiles = () => {
-	fse.outputFileSync('.gitignore', [
-		'*.log',
-		'build',
-		'node_modules',
-		'config/local.json'
-	].join('\n'));
-	success('created .gitignore');
+	fse.outputFileSync('.gitignore', ['*.log', 'build', 'node_modules', 'config/local.json'].join('\n'));
+	fse.outputFileSync('.gitattributes', 'package-lock.json binary');
+	success('created dot files: .gitignore, .gitattributes');
 };
 
 const makeConfig = ()=>{
-	fse.outputJsonSync('./config/default.json', { port : 8000 });
-	fse.outputJsonSync('./config/local.json', {});
+	LIBS.push('nconf');
+	fse.outputJsonSync('./config/default.json', {
+		port : 8000,
+		client : {api_route : ''}
+	});
+	fse.outputJsonSync('./config/local.json', {
+		client : {api_route : 'test.com/api'}
+	});
 	success('created configs');
 };
 
 const makeScripts = ()=>{
-	fse.outputJsonSync('./scripts/project.json', {
-		"entryPoints" : {
-			"main" : "./client/main/main.jsx"
-		},
-		"assets" : ["*.svg", "*.png", "*.jpg", "*.otf", "*.woff", "*.ico", "*.ttf"],
-		"shared" : ["./client"],
-		"libs" : [
-			"react",
-			"react-dom",
-			"create-react-class",
-			"lodash",
-			"classnames"
-		]
-	});
-	fse.outputFileSync('./scripts/build.js', templates.buildScript());
-	fse.outputFileSync('./scripts/dev.js', templates.devScript());
+	fse.outputFileSync('./scripts/project.js', templates.scripts.project());
+	fse.outputFileSync('./scripts/build.script.js', templates.scripts.build());
+	fse.outputFileSync('./scripts/dev.script.js', templates.scripts.dev());
 	success('created build scripts');
 };
 
 const makeShared = ()=>{
-	fse.outputFileSync('./client/shared/widget/widget.jsx', templates.jsx('widget'));
+	fse.outputFileSync('./client/shared/config.js', templates.client.config());
+	fse.outputFileSync('./client/shared/widget/widget.jsx', templates.pure('widget'));
 	fse.outputFileSync('./client/shared/widget/widget.less', templates.less('widget'));
+	fse.outputFileSync('./client/shared/components.js', `module.exports = {
+	Widget : require('./widget/widget.jsx'),
+};`);
 	success('created shared');
 };
 
 const makeLinting = ()=>{
 	DEV_LIBS.push('eslint');
 	DEV_LIBS.push('eslint-plugin-react');
+
 	package.scripts['lint'] = 'eslint --fix **/*.{js,jsx}';
 	package.scripts['lint:dry'] = 'eslint **/*.{js,jsx}';
-
-	fse.outputFileSync('./.eslintrc.json', templates.eslint());
-
+	package.eslintIgnore = ['build'];
+	fse.outputFileSync('./.eslintrc.js', templates.eslint());
 	success('created linting');
 };
 
 const makeTests = ()=>{
-	DEV_LIBS.push('ava');
-	package.scripts['test'] = 'ava -s -v';
-	package.scripts['test:dev'] = 'ava -w';
+	DEV_LIBS.push('tape');
+	DEV_LIBS.push('tape-watch');
+	DEV_LIBS.push('tap-spec');
+	package.scripts['test'] = 'tape tests/**/*.test.js | tap-spec';
+	package.scripts['test:dev'] = 'tape-watch tests/**/*.test.js | tap-spec';
 
 	fse.outputFileSync('./tests/basic.test.js', templates.test());
 
+	makeReactTests();
 	success('created tests');
+};
+
+const makeReactTests = ()=>{
+	DEV_LIBS.push('react-test-renderer');
+	DEV_LIBS.push('babel-register');
+
+	package.scripts['test:jsx'] = 'tape -r babel-register tests/**/*.test.{js,jsx} | tap-spec';
+
+	fse.outputFileSync('./tests/comp.test.jsx', templates.testReact());
 };
 
 
 const done = () => {
-	console.log('done!');
+	console.log(chalk.magenta('\n🎉 done! 🎉'));
 	console.log('\nInstall the following libs:\n');
+	console.log(chalk.cyan(`  npm i ${CORE_LIBS.join(' ')}`));
 	console.log(chalk.cyan(`  npm i ${LIBS.join(' ')}`));
-	console.log(chalk.yellow(`  npm i -D ${DEV_LIBS.join(' ')}\n`));
-
-	//TODO: add suggestions for optional libs, date-fns, your style module, etc.
+	console.log(chalk.yellow(`  npm i --save-dev ${DEV_LIBS.join(' ')}\n`));
 };
 
 
 loadPackage()
 	.then(makeClient)
-	.then(makeScripts)
 	.then(makeServer)
 	.then(makeShared)
 	.then(makeDotFiles)
 	.then(makeConfig)
 	.then(makeLinting)
 	.then(makeTests)
+	.then(makeScripts)
 	.then(updatePackage)
 	.then(done)
 	.catch(console.error)
