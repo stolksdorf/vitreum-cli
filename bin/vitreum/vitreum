@@ -156,7 +156,7 @@ const done = () => {
 	console.log(chalk.magenta('\n🎉 done! 🎉'));
 	console.log('\nInstall the following libs:\n');
 	console.log(chalk.cyan(`  npm i ${LIBS.join(' ')}`));
-	console.log(chalk.yellow(`  npm i -D ${DEV_LIBS.join(' ')}\n`));
+	console.log(chalk.yellow(`  npm i --save-dev ${DEV_LIBS.join(' ')}\n`));
 };
 
 
