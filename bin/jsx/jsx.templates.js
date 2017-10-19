@@ -31,13 +31,11 @@ module.exports = ${Name};
 			return `const React = require('react');
 const _     = require('lodash');
 
-
-module.exports = (props)=>{
-	props = _.defaults(props, {
-
-	});
-
-	return <div className='${name}'>
+module.exports = ({
+	className = '',
+	...props
+})=>{
+	return <div className='${name}' {...props}>
 		${Name} Pure Component Ready.
 	</div>;
 };
