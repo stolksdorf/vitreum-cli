@@ -12,15 +12,18 @@ const templates = Object.assign(
 	require('../jsx/jsx.templates.js')
 );
 
-let LIBS = [
-	'vitreum',
+const CORE_LIBS = [
 	'babel-preset-stage-3',
 	'babel-preset-react',
+	'create-react-class',
 	'lodash',
 	'react',
 	'react-dom',
+	'vitreum',
 	'express',
 ];
+
+let LIBS = [];
 
 let DEV_LIBS = ['cross-env', 'fixme'];
 
@@ -62,7 +65,6 @@ const updatePackage = () => {
 
 const makeClient = ()=>{
 	LIBS.push('nconf');
-	LIBS.push('create-react-class');
 	LIBS.push('classnames');
 	LIBS.push('pico-router');
 	//add in a routing comp
@@ -129,7 +131,6 @@ const makeLinting = ()=>{
 };
 
 const makeTests = ()=>{
-	//switch over to tape
 	DEV_LIBS.push('tape');
 	DEV_LIBS.push('tape-watch');
 	DEV_LIBS.push('tap-spec');
@@ -138,6 +139,7 @@ const makeTests = ()=>{
 
 	fse.outputFileSync('./tests/basic.test.js', templates.test());
 
+	makeReactTests();
 	success('created tests');
 };
 
@@ -145,16 +147,16 @@ const makeReactTests = ()=>{
 	DEV_LIBS.push('react-test-renderer');
 	DEV_LIBS.push('babel-register');
 
-	package.scripts['test'] = 'tape -r babel-register tests/**/*.test.{js,jsx} | tap-spec';
-	package.scripts['test:dev'] = 'tape-watch -r babel-register tests/**/*.test.{js,jsx} | tap-spec';
+	package.scripts['test:jsx'] = 'tape -r babel-register tests/**/*.test.{js,jsx} | tap-spec';
 
-	//Add in a basic react test
-}
+	fse.outputFileSync('./tests/comp.test.jsx', templates.testReact());
+};
 
 
 const done = () => {
 	console.log(chalk.magenta('\n🎉 done! 🎉'));
 	console.log('\nInstall the following libs:\n');
+	console.log(chalk.cyan(`  npm i ${CORE_LIBS.join(' ')}`));
 	console.log(chalk.cyan(`  npm i ${LIBS.join(' ')}`));
 	console.log(chalk.yellow(`  npm i --save-dev ${DEV_LIBS.join(' ')}\n`));
 };
