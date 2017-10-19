@@ -12,21 +12,21 @@ const templates = Object.assign(
 	require('../jsx/jsx.templates.js')
 );
 
-const LIBS = [
+let LIBS = [
 	'lodash',
 	'react',
+	'react-dom',
 	'create-react-class',
 	'classnames',
 	'express',
 	'vitreum',
-	'nconf'
+	'nconf',
+	'pico-router'
 ];
 
-let DEV_LIBS = [
-	'cross-env'
-];
+let DEV_LIBS = ['cross-env', 'fixme'];
 
-//let package = {};
+let package = {};
 
 const loadPackage = () => {
 	return new Promise((resolve, reject) => {
@@ -41,68 +41,65 @@ const loadPackage = () => {
 const updatePackage = () => {
 	package.main = 'server.js';
 
-	package.scripts.dev         = "node scripts/dev.js";
-	package.scripts.build       = "node scripts/build.js";
-	package.scripts.prod        = "cross-env NODE_ENV=production && npm run build";
+	package.scripts.dev         = "node scripts/dev.script.js";
+	package.scripts.build       = "node scripts/build.script.js";
+	package.scripts.prod        = "cross-env NODE_ENV=production && npm run build && npm run start";
 	package.scripts.postinstall = "npm run build";
-	package.scripts.start       = "node server/server.js";
+	package.scripts.start       = "node app.js";
+	package.scripts.todo        = "fixme -i build/** -i node_modules/** **/*.{js,jsx,less}";
 
 	fse.writeJsonSync('./package.json', package);
 	success('updated package.json');
 };
 
 const makeClient = ()=>{
+	//add in a routing comp
+	//add in pages
 	fse.outputFileSync('./client/main/main.jsx', templates.jsx('main'));
 	fse.outputFileSync('./client/main/main.less', templates.less('main'));
 	success('created main component');
 };
 
 const makeServer = () => {
+	fse.outputFileSync('./app.js', templates.app())
 	fse.outputFileSync('./server/server.js', templates.server());
-	fse.outputFileSync('./server/routes.js', '');
+	fse.outputFileSync('./server/basic.router.js', templates.router());
 	fse.outputFileSync('./server/page.template.js', templates.template());
 	success('created server files');
 };
 
 const makeDotFiles = () => {
-	fse.outputFileSync('.gitignore', [
-		'*.log',
-		'build',
-		'node_modules',
-		'config/local.json'
-	].join('\n'));
-	success('created .gitignore');
+	fse.outputFileSync('.gitignore', ['*.log', 'build', 'node_modules', 'config/local.json'].join('\n'));
+	fse.outputFileSync('.gitattributes', 'package-lock.json binary');
+	success('created dot files: .gitignore, .gitattributes');
 };
 
 const makeConfig = ()=>{
-	fse.outputJsonSync('./config/default.json', { port : 8000 });
-	fse.outputJsonSync('./config/local.json', {});
+	fse.outputJsonSync('./config/default.json', {
+		port : 8000,
+		client : {api_route : ''}
+	});
+	fse.outputJsonSync('./config/local.json', {
+		client : {api_route : 'test.com/api'}
+	});
 	success('created configs');
 };
 
 const makeScripts = ()=>{
-	fse.outputJsonSync('./scripts/project.json', {
-		"entryPoints" : {
-			"main" : "./client/main/main.jsx"
-		},
-		"assets" : ["*.svg", "*.png", "*.jpg", "*.otf", "*.woff", "*.ico", "*.ttf"],
-		"shared" : ["./client"],
-		"libs" : [
-			"react",
-			"react-dom",
-			"create-react-class",
-			"lodash",
-			"classnames"
-		]
-	});
-	fse.outputFileSync('./scripts/build.js', templates.buildScript());
-	fse.outputFileSync('./scripts/dev.js', templates.devScript());
+	fse.outputFileSync('./scripts/project.js', templates.scripts.project(LIBS));
+	fse.outputFileSync('./scripts/build.script.js', templates.scripts.build());
+	fse.outputFileSync('./scripts/dev.script.js', templates.scripts.dev());
 	success('created build scripts');
 };
 
 const makeShared = ()=>{
+	//add in component index
+	//add in config file
 	fse.outputFileSync('./client/shared/widget/widget.jsx', templates.jsx('widget'));
 	fse.outputFileSync('./client/shared/widget/widget.less', templates.less('widget'));
+	fse.outfileFileSync('./client/shared/components.js', `module.exports = {
+	Widget : require('./widget/widget.jsx'),
+};`);
 	success('created shared');
 };
 
@@ -112,13 +109,15 @@ const makeLinting = ()=>{
 	package.scripts['lint'] = 'eslint --fix **/*.{js,jsx}';
 	package.scripts['lint:dry'] = 'eslint **/*.{js,jsx}';
 
-	fse.outputFileSync('./.eslintrc.json', templates.eslint());
+	fse.outputFileSync('./.eslintrc.js', templates.eslint());
 
 	success('created linting');
 };
 
 const makeTests = ()=>{
-	DEV_LIBS.push('ava');
+	//switch over to tape
+	DEV_LIBS.push('tape');
+	DEV_LIBS.push('faucet');
 	package.scripts['test'] = 'ava -s -v';
 	package.scripts['test:dev'] = 'ava -w';
 
@@ -126,6 +125,11 @@ const makeTests = ()=>{
 
 	success('created tests');
 };
+
+const makeReactTests = ()=>{
+	//add react-test renderer
+	//add babel register
+}
 
 
 const done = () => {
@@ -140,7 +144,6 @@ const done = () => {
 
 loadPackage()
 	.then(makeClient)
-	.then(makeScripts)
 	.then(makeServer)
 	.then(makeShared)
 	.then(makeDotFiles)
@@ -148,5 +151,6 @@ loadPackage()
 	.then(makeLinting)
 	.then(makeTests)
 	.then(updatePackage)
+	.then(makeScripts)
 	.then(done)
 	.catch(console.error)
