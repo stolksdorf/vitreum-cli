@@ -28,7 +28,7 @@ const server = require('./server/server.js');
 
 const PORT = config.get('port');
 server.listen(PORT, () => {
-	console.log(\`server on port:\${PORT}\`);
+	console.log(\`server on localhost:\${PORT}\`);
 });`
 
 	},
@@ -46,7 +46,7 @@ router.get('*', (req, res) => {
 	})
 	.then((page) => res.send(page))
 	.catch((err) => console.log(err));
-};
+});
 
 module.exports = router;`
 	},

@@ -14,6 +14,8 @@ const templates = Object.assign(
 
 let LIBS = [
 	'vitreum',
+	'babel-preset-stage-3',
+	'babel-preset-react',
 	'lodash',
 	'react',
 	'react-dom',
@@ -35,7 +37,7 @@ const loadPackage = () => {
 };
 
 const updatePackage = () => {
-	package.main = 'server.js';
+	package.main = 'app.js';
 
 	package.scripts.dev         = "node scripts/dev.script.js";
 	package.scripts.build       = "node scripts/build.script.js";
@@ -99,7 +101,7 @@ const makeConfig = ()=>{
 };
 
 const makeScripts = ()=>{
-	fse.outputFileSync('./scripts/project.js', templates.scripts.project(LIBS));
+	fse.outputFileSync('./scripts/project.js', templates.scripts.project());
 	fse.outputFileSync('./scripts/build.script.js', templates.scripts.build());
 	fse.outputFileSync('./scripts/dev.script.js', templates.scripts.dev());
 	success('created build scripts');

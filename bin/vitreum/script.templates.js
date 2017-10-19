@@ -45,19 +45,25 @@ Promise.resolve()
 	.then(() => steps.assetsWatch(Proj.assets, Proj.shared))
 	.then(() => steps.livereload())
 	.then(() => steps.serverWatch('./app.js', ['server']))
-	.then(() => staticWatch())
 	.then(() => console.timeEnd(label))
 	.catch((err)=>console.error(err));`;
 	},
 
-	project : (libs=[])=>{
+	project : ()=>{
 		return `module.exports = {
 	entryPoints: {
 		main : './client/main/main.jsx'
 	},
 	assetExts  : ['*.jpg', '*.png', '*.otf', '*.woff', '*.woff2', '*.ico', '*.ttf', '*.svg'],
 	shared     : ['./client'],
-	libs : ${JSON.stringify(libs, null, '\t\t')}
+	libs : [
+		'react',
+		'react-dom',
+		'lodash/core',
+		'create-react-class',
+		'pico-router',
+		'classnames',
+	]
 };`
 	},
 }
