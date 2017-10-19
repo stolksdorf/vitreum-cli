@@ -13,15 +13,11 @@ const templates = Object.assign(
 );
 
 let LIBS = [
+	'vitreum',
 	'lodash',
 	'react',
 	'react-dom',
-	'create-react-class',
-	'classnames',
 	'express',
-	'vitreum',
-	'nconf',
-	'pico-router'
 ];
 
 let DEV_LIBS = ['cross-env', 'fixme'];
@@ -48,23 +44,39 @@ const updatePackage = () => {
 	package.scripts.start       = "node app.js";
 	package.scripts.todo        = "fixme -i build/** -i node_modules/** **/*.{js,jsx,less}";
 
+	package.babel = {
+		only: ['*.jsx'],
+		presets: ['stage-3', 'react']
+	};
+
+	package.engines = {
+		node: "^6.3.0",
+		npm: "^5.3.0"
+	};
+
 	fse.writeJsonSync('./package.json', package);
 	success('updated package.json');
 };
 
 const makeClient = ()=>{
+	LIBS.push('nconf');
+	LIBS.push('create-react-class');
+	LIBS.push('classnames');
+	LIBS.push('pico-router');
 	//add in a routing comp
 	//add in pages
-	fse.outputFileSync('./client/main/main.jsx', templates.jsx('main'));
+	fse.outputFileSync('./client/main/main.jsx', templates.client.main());
 	fse.outputFileSync('./client/main/main.less', templates.less('main'));
-	success('created main component');
+	fse.outputFileSync('./client/main/home/home.jsx', templates.client.homePage());
+	fse.outputFileSync('./client/main/home/home.less', templates.less('home.page'));
+	success('created main component and home page');
 };
 
 const makeServer = () => {
-	fse.outputFileSync('./app.js', templates.app())
-	fse.outputFileSync('./server/server.js', templates.server());
-	fse.outputFileSync('./server/basic.router.js', templates.router());
-	fse.outputFileSync('./server/page.template.js', templates.template());
+	fse.outputFileSync('./app.js', templates.server.app())
+	fse.outputFileSync('./server/server.js', templates.server.server());
+	fse.outputFileSync('./server/page.router.js', templates.server.pageRouter());
+	fse.outputFileSync('./server/page.template.js', templates.server.pageTemplate(package.name));
 	success('created server files');
 };
 
@@ -75,6 +87,7 @@ const makeDotFiles = () => {
 };
 
 const makeConfig = ()=>{
+	LIBS.push('nconf');
 	fse.outputJsonSync('./config/default.json', {
 		port : 8000,
 		client : {api_route : ''}
@@ -93,11 +106,10 @@ const makeScripts = ()=>{
 };
 
 const makeShared = ()=>{
-	//add in component index
-	//add in config file
-	fse.outputFileSync('./client/shared/widget/widget.jsx', templates.jsx('widget'));
+	fse.outputFileSync('./client/shared/config.js', templates.client.config());
+	fse.outputFileSync('./client/shared/widget/widget.jsx', templates.pure('widget'));
 	fse.outputFileSync('./client/shared/widget/widget.less', templates.less('widget'));
-	fse.outfileFileSync('./client/shared/components.js', `module.exports = {
+	fse.outputFileSync('./client/shared/components.js', `module.exports = {
 	Widget : require('./widget/widget.jsx'),
 };`);
 	success('created shared');
@@ -106,20 +118,21 @@ const makeShared = ()=>{
 const makeLinting = ()=>{
 	DEV_LIBS.push('eslint');
 	DEV_LIBS.push('eslint-plugin-react');
+
 	package.scripts['lint'] = 'eslint --fix **/*.{js,jsx}';
 	package.scripts['lint:dry'] = 'eslint **/*.{js,jsx}';
-
+	package.eslintIgnore = ['build'];
 	fse.outputFileSync('./.eslintrc.js', templates.eslint());
-
 	success('created linting');
 };
 
 const makeTests = ()=>{
 	//switch over to tape
 	DEV_LIBS.push('tape');
-	DEV_LIBS.push('faucet');
-	package.scripts['test'] = 'ava -s -v';
-	package.scripts['test:dev'] = 'ava -w';
+	DEV_LIBS.push('tape-watch');
+	DEV_LIBS.push('tap-spec');
+	package.scripts['test'] = 'tape tests/**/*.test.js | tap-spec';
+	package.scripts['test:dev'] = 'tape-watch tests/**/*.test.js | tap-spec';
 
 	fse.outputFileSync('./tests/basic.test.js', templates.test());
 
@@ -127,18 +140,21 @@ const makeTests = ()=>{
 };
 
 const makeReactTests = ()=>{
-	//add react-test renderer
-	//add babel register
+	DEV_LIBS.push('react-test-renderer');
+	DEV_LIBS.push('babel-register');
+
+	package.scripts['test'] = 'tape -r babel-register tests/**/*.test.{js,jsx} | tap-spec';
+	package.scripts['test:dev'] = 'tape-watch -r babel-register tests/**/*.test.{js,jsx} | tap-spec';
+
+	//Add in a basic react test
 }
 
 
 const done = () => {
-	console.log('done!');
+	console.log(chalk.magenta('\n🎉 done! 🎉'));
 	console.log('\nInstall the following libs:\n');
 	console.log(chalk.cyan(`  npm i ${LIBS.join(' ')}`));
 	console.log(chalk.yellow(`  npm i -D ${DEV_LIBS.join(' ')}\n`));
-
-	//TODO: add suggestions for optional libs, date-fns, your style module, etc.
 };
 
 
@@ -150,7 +166,7 @@ loadPackage()
 	.then(makeConfig)
 	.then(makeLinting)
 	.then(makeTests)
-	.then(updatePackage)
 	.then(makeScripts)
+	.then(updatePackage)
 	.then(done)
 	.catch(console.error)

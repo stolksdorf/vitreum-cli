@@ -30,24 +30,29 @@ Bootstraps a Vitreum project at the current location. Requires a `package.json` 
 /myProj
 ├─ /build/...
 ├─ /node_modules/...
-├─ .eslint.json
+├─ .eslintrc.js
+├─ .gitignore
+├─ .gitattributes
+├─ app.js
 ├─ /client
 |   ├─ /shared
-|   |  └─ /navbar...
+|   |  └─ /components.js
+|   |  └─ /widget/...
 |   └─ /main
 |      ├─ main.jsx
 |      └─ main.less
+|      └─ /pages/...
 ├─ /config
 |   ├─ default.json
 |   └─ local.json
 ├─ /scripts
-|   ├─ build.js
-|   ├─ dev.js
-|   └─ project.json
+|   ├─ build.script.js
+|   ├─ dev.script.js
+|   └─ project.js
 └─ /server
    ├─ server.js
    ├─ page.template.js
-   └─ routes.js
+   └─ page.router.js
 ```
 
 

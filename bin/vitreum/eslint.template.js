@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = `module.exports = {
 	root: true,
 	parserOptions : {
 		ecmaVersion  : 6,
@@ -75,4 +75,4 @@ module.exports = {
 		'space-in-parens'               : ['warn', 'never'],
 		'template-curly-spacing'        : ['warn', 'never'],
 	}
-};
+};`;

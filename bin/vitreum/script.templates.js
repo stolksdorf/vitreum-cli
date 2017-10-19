@@ -57,7 +57,7 @@ Promise.resolve()
 	},
 	assetExts  : ['*.jpg', '*.png', '*.otf', '*.woff', '*.woff2', '*.ico', '*.ttf', '*.svg'],
 	shared     : ['./client'],
-	libs : ${JSON.stringify(libs, null, '\t')}
+	libs : ${JSON.stringify(libs, null, '\t\t')}
 };`
 	},
 }
