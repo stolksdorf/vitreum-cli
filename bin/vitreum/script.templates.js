@@ -19,7 +19,7 @@ Promise.resolve()
 		})
 		.then((deps) => steps.less(name, {shared: Proj.shared}, deps));
 	})))
-	.then(() => steps.assets(Proj.assets, Proj.shared))
+	.then(() => steps.assetsWatch(Proj.assetExts, Proj.shared))
 	.then(() => console.timeEnd(label))
 	.catch((err)=>console.error(err));`;
 	},
@@ -42,7 +42,7 @@ Promise.resolve()
 		})
 		.then((deps) => steps.lessWatch(name, {shared: Proj.shared}, deps));
 	})))
-	.then(() => steps.assetsWatch(Proj.assets, Proj.shared))
+	.then(() => steps.assetsWatch(Proj.assetExts, Proj.shared))
 	.then(() => steps.livereload())
 	.then(() => steps.serverWatch('./app.js', ['server']))
 	.then(() => console.timeEnd(label))
