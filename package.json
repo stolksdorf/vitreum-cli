@@ -1,6 +1,6 @@
 {
   "name": "vitreum-cli",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Global commandline tools for Vitreum projects",
   "main": "index.js",
   "scripts": {

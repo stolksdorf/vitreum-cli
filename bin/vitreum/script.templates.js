@@ -19,7 +19,7 @@ Promise.resolve()
 		})
 		.then((deps) => steps.less(name, {shared: Proj.shared}, deps));
 	})))
-	.then(() => steps.assetsWatch(Proj.assetExts, Proj.shared))
+	.then(() => steps.assets(Proj.assetExts, Proj.shared))
 	.then(() => console.timeEnd(label))
 	.catch((err)=>console.error(err));`;
 	},
